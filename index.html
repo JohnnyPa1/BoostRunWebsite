@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form action="">
+      <label for="test">Test:</label>
+      <input type="text" id="test" name="test" />
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+      crossorigin="anonymous"
+    ></script>
+    <script type="module">
+      import { Octokit, App } from "https://esm.sh/octokit";
+      let test = $("#test");
+      let submit = $("form :submit");
+
+      const octokit = new Octokit({
+        auth: "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",
+      });
+
+      submit.on("click", function (e) {
+        e.preventDefault();
+        putInfo();
+      });
+
+      async function putInfo() {
+        let clientInfo = test.val();
+        let dateOfInfo = new Date().toUTCString();
+        var commitmsg = "Newest client:" + dateOfInfo;
+
+        let fileData = await octokit.request(
+          "GET /repos/{owner}/{repo}/contents/{path}",
+          {
+            owner: "JohnnyPa1",
+            repo: "BoostRuns",
+            path: "Clients.txt",
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+          }
+        );
+
+        let oldContent = atob(fileData.data.content);
+        let newContent = oldContent + "\n" + clientInfo;
+        let encodedInfo = btoa(newContent);
+
+        await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+          owner: "JohnnyPa1",
+          repo: "BoostRuns",
+          path: "Clients.txt",
+          message: commitmsg,
+          content: encodedInfo,
+          sha: fileData.data.sha,
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
